@@ -2,60 +2,49 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Collège Social Admin</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Collège Social - Google Login</title>
     <style>
-        :root { --p: #4a90e2; --bg: #f0f2f5; --dark: #1c1e21; --red: #e74c3c; }
+        :root { --p: #4285F4; --bg: #f8f9fa; }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); margin: 0; display: flex; }
+
+        /* SIDEBAR (Pronote/Skolengo/EcoleDirecte) */
+        .sidebar { width: 70px; background: white; border-right: 1px solid #ddd; display: flex; flex-direction: column; align-items: center; padding-top: 20px; position: fixed; height: 100vh; gap: 15px; }
+        .sidebar-item { width: 45px; height: 45px; border-radius: 10px; border: 1px solid #eee; overflow: hidden; background: white; }
+        .sidebar-item img { width: 100%; height: 100%; object-fit: contain; }
+
+        /* MAIN APP */
+        #main-wrapper { flex: 1; margin-left: 70px; display: none; flex-direction: column; align-items: center; width: 100%; }
+        nav { background: var(--p); color: white; width: 100%; padding: 15px; display: flex; justify-content: space-between; align-items: center; box-sizing: border-box; }
         
-        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); margin: 0; display: flex; min-height: 100vh; }
-
-        /* SIDEBAR */
-        .sidebar { width: 75px; background: white; border-right: 1px solid #ddd; display: flex; flex-direction: column; align-items: center; padding-top: 20px; position: fixed; height: 100vh; z-index: 1000; gap: 20px; }
-        .sidebar-item { width: 50px; height: 50px; border-radius: 12px; cursor: pointer; display: flex; justify-content: center; align-items: center; overflow: hidden; border: 1px solid #eee; background: white; }
-        .sidebar-item img { width: 85%; height: 85%; object-fit: contain; }
-
-        /* MAIN */
-        #main-wrapper { flex: 1; margin-left: 75px; display: flex; flex-direction: column; align-items: center; width: calc(100% - 75px); }
-        nav { background: var(--p); color: white; width: 100%; padding: 15px 25px; font-weight: bold; display: flex; justify-content: space-between; align-items: center; box-sizing: border-box; position: sticky; top: 0; z-index: 900; }
         .container { width: 95%; max-width: 550px; margin-top: 20px; }
+        .post-box { background: white; padding: 20px; border-radius: 15px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); margin-bottom: 20px; }
+        textarea { width: 100%; border: 1px solid #ddd; border-radius: 10px; padding: 10px; resize: none; box-sizing: border-box; font-size: 16px; }
+        
+        /* LOGIN OVERLAY */
+        #login-overlay { position: fixed; inset: 0; background: white; display: flex; justify-content: center; align-items: center; z-index: 2000; }
+        .google-btn { background: white; border: 1px solid #dadce0; color: #3c4043; padding: 12px 24px; border-radius: 4px; cursor: pointer; font-weight: bold; display: flex; align-items: center; gap: 10px; font-size: 16px; }
+        .google-btn:hover { background: #f7f8f8; }
 
         /* POSTS */
-        .post-box { background: white; padding: 20px; border-radius: 15px; box-shadow: 0 2px 12px rgba(0,0,0,0.08); margin-bottom: 25px; }
-        textarea { width: 100%; border: 1px solid #e4e6eb; border-radius: 10px; padding: 12px; resize: none; box-sizing: border-box; font-size: 15px; background: #f0f2f5; }
-        button.primary { background: var(--p); color: white; border: none; padding: 12px; border-radius: 8px; cursor: pointer; width: 100%; font-weight: bold; margin-top: 12px; }
+        .post { background: white; padding: 15px; border-radius: 12px; margin-bottom: 12px; border-left: 5px solid var(--p); box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+        .post-user { font-weight: bold; color: #1a73e8; }
 
-        .post { background: white; padding: 18px; border-radius: 15px; margin-bottom: 15px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); border-left: 5px solid var(--p); position: relative; }
-        .post-user { font-weight: bold; color: var(--dark); }
-        .post-college { font-size: 0.75rem; color: var(--p); font-weight: 600; text-transform: uppercase; }
-        
-        /* BOUTON SUPPRIMER (ADMIN ONLY) */
-        .delete-btn { 
-            position: absolute; top: 10px; right: 10px; 
-            background: var(--red); color: white; border: none; 
-            padding: 5px 10px; border-radius: 5px; cursor: pointer; 
-            font-size: 10px; font-weight: bold; display: none;
+        @media (max-width: 600px) {
+            .sidebar { width: 100%; height: 60px; bottom: 0; top: auto; flex-direction: row; justify-content: center; padding-top: 0; border-right: none; border-top: 1px solid #ddd; }
+            #main-wrapper { margin-left: 0; margin-bottom: 60px; }
         }
-
-        @media (max-width: 650px) {
-            .sidebar { width: 100%; height: 65px; bottom: 0; top: auto; flex-direction: row; justify-content: space-evenly; padding-top: 0; border-right: none; border-top: 1px solid #ddd; }
-            #main-wrapper { margin-left: 0; margin-bottom: 75px; width: 100%; }
-        }
-
-        #login-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--p); display: flex; justify-content: center; align-items: center; z-index: 2000; }
-        .login-card { background: white; padding: 30px; border-radius: 20px; width: 88%; max-width: 380px; text-align: center; }
-        .login-card input { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #ddd; border-radius: 10px; box-sizing: border-box; }
     </style>
 </head>
 <body>
 
     <div id="login-overlay">
-        <div class="login-card">
-            <h2>🎓 Connexion</h2>
-            <input type="text" id="reg-prenom" placeholder="Prénom">
-            <input type="text" id="reg-nom" placeholder="Nom">
-            <input type="text" id="reg-college" placeholder="Nom de ton Collège">
-            <input type="password" id="reg-pass" placeholder="Mot de passe">
-            <button id="btnConnecter" class="primary">Rejoindre</button>
+        <div style="text-align: center;">
+            <h1 style="color: #4285F4; margin-bottom: 30px;">🎓 Collège Social</h1>
+            <button id="btnGoogle" class="google-btn">
+                <img src="https://upload.wikimedia.org/wikipedia/commons/5/53/Google_%22G%22_Logo.svg" width="20">
+                Se connecter avec Google
+            </button>
         </div>
     </div>
 
@@ -67,15 +56,14 @@
 
     <div id="main-wrapper">
         <nav>
-            <span>🎓 Collège Social Connect</span>
-            <button onclick="localStorage.removeItem('collabUser'); location.reload();" style="background:none; border:1px solid white; color:white; cursor:pointer; padding:5px; border-radius:5px; font-size:10px;">Déconnexion</button>
+            <span>🎓 Collège Social</span>
+            <button id="btnDeconnexion" style="background:none; border:1px solid white; color:white; border-radius:4px; cursor:pointer;">Quitter</button>
         </nav>
-        
         <div class="container">
             <div class="post-box">
-                <p id="welcome-user" style="margin:0 0 12px 0; font-weight:bold;"></p>
-                <textarea id="postInput" rows="3" placeholder="Quoi de neuf ?"></textarea>
-                <button id="btnPublier" class="primary">Publier</button>
+                <p id="userName" style="font-weight: bold;"></p>
+                <textarea id="postText" rows="3" placeholder="Quoi de neuf ?"></textarea>
+                <button id="btnPublier" style="width: 100%; background: #4285F4; color: white; border: none; padding: 10px; border-radius: 8px; margin-top: 10px; cursor: pointer; font-weight: bold;">Publier</button>
             </div>
             <div id="feed"></div>
         </div>
@@ -83,8 +71,8 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getFirestore, collection, addDoc, query, orderBy, onSnapshot, serverTimestamp, doc, deleteDoc } 
-        from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+        import { getFirestore, collection, addDoc, query, orderBy, onSnapshot, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyAXIryKruq3g7JtdM8jgv8IDGjserqY3IY",
@@ -96,65 +84,55 @@
         };
 
         const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
         const db = getFirestore(app);
-        const postsCol = collection(db, "messages");
+        const provider = new GoogleAuthProvider();
 
-        let user = JSON.parse(localStorage.getItem('collabUser'));
-        
-        // --- ICI LE CODE ADMIN ---
-        const ADMIN_PASSWORD = "Admin123"; // CHANGE-LE ICI !
-        const isAdmin = user && user.pass === ADMIN_PASSWORD;
-
-        if(user) {
-            document.getElementById('login-overlay').style.display = 'none';
-            document.getElementById('welcome-user').innerText = `Salut ${user.prenom}${isAdmin ? ' (Admin)' : ''} !`;
-            chargerMessages();
-        }
-
-        document.getElementById('btnConnecter').onclick = () => {
-            const p = document.getElementById('reg-prenom').value;
-            const n = document.getElementById('reg-nom').value;
-            const c = document.getElementById('reg-college').value;
-            const pw = document.getElementById('reg-pass').value;
-            if(p && n && c && pw) {
-                localStorage.setItem('collabUser', JSON.stringify({prenom:p, nom:n, college:c, pass:pw}));
-                location.reload();
-            }
+        // CONNEXION
+        document.getElementById('btnGoogle').onclick = () => {
+            signInWithPopup(auth, provider).catch(err => alert("Erreur: " + err.message));
         };
 
+        // DECONNEXION
+        document.getElementById('btnDeconnexion').onclick = () => signOut(auth);
+
+        // SURVEILLER L'ETAT DE CONNEXION
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                document.getElementById('login-overlay').style.display = 'none';
+                document.getElementById('main-wrapper').style.display = 'flex';
+                document.getElementById('userName').innerText = "Salut " + user.displayName + " !";
+                chargerMessages();
+            } else {
+                document.getElementById('login-overlay').style.display = 'flex';
+                document.getElementById('main-wrapper').style.display = 'none';
+            }
+        });
+
+        // PUBLIER
         document.getElementById('btnPublier').onclick = async () => {
-            const t = document.getElementById('postInput').value;
-            if(t.trim() && user) {
-                await addDoc(postsCol, { texte: t, auteur: user.prenom + " " + user.nom, college: user.college, date: serverTimestamp() });
-                document.getElementById('postInput').value = "";
+            const txt = document.getElementById('postText').value;
+            if(txt.trim() !== "") {
+                await addDoc(collection(db, "messages"), {
+                    texte: txt,
+                    auteur: auth.currentUser.displayName,
+                    date: serverTimestamp()
+                });
+                document.getElementById('postText').value = "";
             }
         };
 
+        // CHARGER
         function chargerMessages() {
-            const q = query(postsCol, orderBy("date", "desc"));
-            onSnapshot(q, (snapshot) => {
-                const f = document.getElementById('feed');
-                f.innerHTML = "";
-                snapshot.forEach((d) => {
+            const q = query(collection(db, "messages"), orderBy("date", "desc"));
+            onSnapshot(q, (snaps) => {
+                const feed = document.getElementById('feed'); feed.innerHTML = "";
+                snaps.forEach(d => {
                     const data = d.data();
-                    const postDiv = document.createElement('div');
-                    postDiv.className = 'post';
-                    postDiv.innerHTML = `
-                        <div class="post-college">Collège ${data.college}</div>
-                        <div class="post-user">${data.auteur}</div>
-                        <div class="post-text">${data.texte}</div>
-                        <button class="delete-btn" style="display:${isAdmin ? 'block' : 'none'}" onclick="supprimerPost('${d.id}')">SUPPRIMER</button>
-                    `;
-                    f.appendChild(postDiv);
+                    feed.innerHTML += `<div class="post"><div class="post-user">${data.auteur}</div><div>${data.texte}</div></div>`;
                 });
             });
         }
-
-        window.supprimerPost = async (id) => {
-            if(confirm("Supprimer ce message définitivement ?")) {
-                await deleteDoc(doc(db, "messages", id));
-            }
-        };
     </script>
 </body>
 </html>

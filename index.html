@@ -5,21 +5,51 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Collège Social</title>
     <style>
-        :root { --p: #4a90e2; --bg: #f0f2f5; }
-        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); margin: 0; padding-bottom: 80px; }
+        :root { --p: #4a90e2; --bg: #f0f2f5; --apple: #000000; }
+        body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg); margin: 0; padding-bottom: 80px; -webkit-tap-highlight-color: transparent; }
+
+        /* --- STYLES ECRAN DE CONNEXION --- */
         #login-overlay { position: fixed; inset: 0; background: white; display: flex; justify-content: center; align-items: center; z-index: 2000; }
         .login-card { background: white; padding: 25px; border-radius: 20px; width: 85%; max-width: 350px; text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
-        input { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #ddd; border-radius: 10px; box-sizing: border-box; }
-        nav { background: var(--p); color: white; padding: 15px; font-weight: bold; display: flex; justify-content: space-between; position: sticky; top: 0; z-index: 1000; }
-        #main-wrapper { display: none; flex-direction: column; align-items: center; padding: 15px; }
-        .post { background: white; padding: 15px; border-radius: 12px; margin-bottom: 10px; width: 100%; max-width: 500px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        .login-card h1 { font-size: 1.6rem; color: #333; margin-top: 0; }
+        
+        /* BOUTONS AUTHENTIFICATION */
+        .auth-buttons { display: flex; justify-content: center; gap: 20px; margin-bottom: 15px; }
+        .btn-round { width: 55px; height: 55px; border-radius: 50%; border: 1px solid #ddd; background: white; cursor: pointer; display: flex; justify-content: center; align-items: center; transition: 0.2s; padding: 0; }
+        .btn-round:active { transform: scale(0.95); background: #f9f9f9; }
+        .btn-round img { width: 25px; }
+        .btn-round.apple { background: var(--apple); border: none; }
+        .btn-round.apple img { filter: invert(1); }
+
+        /* INPUTS CONNEXION CLASSIQUE */
+        .input-login { width: 100%; padding: 12px; margin: 6px 0; border: 1px solid #ddd; border-radius: 10px; box-sizing: border-box; font-size: 16px; outline: none; transition: 0.2s; }
+        .input-login:focus { border-color: var(--p); }
+        
+        /* --- STYLES INTERFACE PRINCIPALE --- */
+        #main-wrapper { display: none; padding: 15px; flex-direction: column; align-items: center; }
+
+        /* HEADER */
+        nav { background: var(--p); color: white; width: 100%; padding: 15px; font-weight: bold; display: flex; justify-content: space-between; align-items: center; box-sizing: border-box; position: sticky; top: 0; z-index: 1000; border-radius: 0 0 10px 10px; }
+        .logout-btn { background: rgba(255,255,255,0.2); border: 1px solid white; color: white; padding: 5px 10px; border-radius: 5px; font-size: 12px; cursor: pointer; text-transform: uppercase; }
+
+        /* FLUX DE MESSAGES */
+        #feed { display: flex; flex-direction: column; width: 100%; max-width: 500px; padding: 0 15px; box-sizing: border-box; }
+        .post { background: white; padding: 15px; border-radius: 12px; margin-bottom: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
         .post b { color: var(--p); display: block; margin-bottom: 5px; }
-        .input-area { width: 100%; max-width: 500px; background: white; padding: 15px; border-radius: 12px; box-sizing: border-box; margin-bottom: 20px; }
-        .action-btns { display: flex; gap: 10px; margin-top: 10px; align-items: center; }
-        button.publier { background: var(--p); color: white; border: none; padding: 12px; border-radius: 10px; flex: 1; font-weight: bold; cursor: pointer; }
-        .online-counter { font-size: 12px; color: #28a745; font-weight: bold; display: flex; align-items: center; gap: 4px; }
-        .dot { width: 8px; height: 8px; background: #28a745; border-radius: 50%; display: inline-block; animation: blink 1.5s infinite; }
+        .post span { font-size: 0.9rem; color: #333; line-height: 1.4; }
+
+        /* BARRE D'ENVOI FIXE EN BAS */
+        .bottom-bar { position: fixed; bottom: 0; left: 0; width: 100%; background: white; border-top: 1px solid #ddd; padding: 15px; box-sizing: border-box; display: flex; gap: 10px; align-items: center; z-index: 1000; }
+        #postText { flex: 1; padding: 12px; border-radius: 20px; border: 1px solid #ddd; outline: none; font-size: 15px; transition: 0.2s; }
+        #postText:focus { border-color: var(--p); }
+        button.publier { background: var(--p); color: white; border: none; padding: 12px 18px; border-radius: 20px; font-weight: bold; cursor: pointer; transition: 0.2s; }
+        button.publier:active { transform: scale(0.95); background: #0073e6; }
+
+        /* COMPTEUR EN LIGNE (STYLE VERT) */
+        .online-counter { font-size: 11px; color: #28a745; font-weight: bold; display: flex; align-items: center; gap: 3px; }
+        .dot { width: 7px; height: 7px; background: #28a745; border-radius: 50%; display: inline-block; animation: blink 1.5s infinite; }
         @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+
     </style>
 </head>
 <body>
@@ -27,29 +57,46 @@
     <div id="login-overlay">
         <div class="login-card">
             <h1>🎓 Collège Social</h1>
-            <input type="text" id="reg-prenom" placeholder="Ton Prénom">
-            <button id="btnConnecter" style="background:var(--p); color:white; border:none; padding:12px; width:100%; border-radius:10px; cursor:pointer; font-weight:bold;">Entrer</button>
+            <p style="color:#666; font-size: 14px; margin-bottom: 15px;">Connecte-toi pour voir le Cloud</p>
+            
+            <div class="auth-buttons">
+                <button id="btnGoogle" class="btn-round" title="Se connecter avec Google">
+                    <img src="https://upload.wikimedia.org/wikipedia/commons/5/53/Google_%22G%22_Logo.svg">
+                </button>
+                <button id="btnApple" class="btn-round apple" title="Se connecter avec Apple">
+                    <img src="https://upload.wikimedia.org/wikipedia/commons/f/fa/Apple_logo_black.svg">
+                </button>
+            </div>
+
+            <div style="margin: 10px 0; color: #888; font-size: 12px;">OU CLASSIQUE</div>
+
+            <input type="text" id="reg-prenom" placeholder="Prénom" class="input-login">
+            <input type="text" id="reg-nom" placeholder="Nom" class="input-login">
+            <button id="btnConnecter" style="background:var(--p); color:white; border:none; padding:12px; width:100%; border-radius:10px; margin-top:10px; cursor:pointer; font-weight:bold;">Entrer</button>
         </div>
     </div>
 
     <div id="main-wrapper">
-        <nav><span>🎓 Collège Social</span><button onclick="localStorage.clear(); location.reload();" style="background:none; border:1px solid white; color:white; border-radius:5px; cursor:pointer;">Quitter</button></nav>
+        <nav><span>🎓 Collège Social</span><button class="logout-btn" id="btnLogout">Déconnexion</button></nav>
         
-        <div class="input-area">
-            <p id="welcome-msg" style="font-weight:bold;"></p>
-            <textarea id="postText" placeholder="Écris quelque chose..." style="width:100%; height:60px; border-radius:10px; border:1px solid #ddd; padding:10px; box-sizing:border-box; resize:none;"></textarea>
-            <div class="action-btns">
-                <button id="btnPublier" class="publier">Envoyer</button>
-                <div class="online-counter">
-                    <span class="dot"></span> <span id="userCount">...</span>
-                </div>
-            </div>
+        <div style="width:100%; max-width:500px; padding: 15px; box-sizing: border-box;">
+            <p id="welcome-msg" style="font-weight: bold; margin:0 0 15px 0;"></p>
         </div>
-        <div id="feed" style="width:100%; max-width:500px;"></div>
+
+        <div id="feed">Chargement des messages...</div>
+    </div>
+
+    <div class="bottom-bar">
+        <input type="text" id="postText" placeholder="Quoi de neuf ?">
+        <button id="btnPublier" class="publier">Publier</button>
+        <div class="online-counter" title="Personnes connectées">
+            <span class="dot"></span> <span id="userCount">...</span>
+        </div>
     </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getAuth, signInWithPopup, GoogleAuthProvider, OAuthProvider, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
         import { getFirestore, collection, addDoc, query, orderBy, onSnapshot, serverTimestamp, doc, getDoc, setDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
         const firebaseConfig = {
@@ -62,47 +109,74 @@
         };
 
         const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
         const db = getFirestore(app);
 
-        let myName = localStorage.getItem('tempUser');
+        // --- 1. GESTION DE LA CONNEXION (GOOGLE / APPLE / CLASSIQUE) ---
+        
+        // Connexion avec Google
+        document.getElementById('btnGoogle').onclick = () => {
+            signInWithPopup(auth, new GoogleAuthProvider());
+        };
 
-        if(myName) { 
-            document.getElementById('login-overlay').style.display = 'none';
-            document.getElementById('main-wrapper').style.display = 'flex';
-            document.getElementById('welcome-msg').innerText = "Salut " + myName + " !";
-            chargerMessages();
-            gererPresence();
-        }
+        // Connexion avec Apple (Nécessite configuration côté Firebase)
+        document.getElementById('btnApple').onclick = () => {
+            const provider = new OAuthProvider('apple.com');
+            signInWithPopup(auth, provider);
+        };
 
+        // Connexion Classique (Prénom/Nom)
         document.getElementById('btnConnecter').onclick = () => {
             const p = document.getElementById('reg-prenom').value.trim();
             if(p) { localStorage.setItem('tempUser', p); location.reload(); }
         };
 
+        // Déconnexion
+        document.getElementById('btnLogout').onclick = () => {
+            signOut(auth).then(() => { localStorage.removeItem('tempUser'); location.reload(); });
+        };
+
+        // Écoute de l'état de l'utilisateur
+        onAuthStateChanged(auth, (user) => {
+            const temp = localStorage.getItem('tempUser');
+            if (user || temp) {
+                document.getElementById('login-overlay').style.display = 'none';
+                document.getElementById('main-wrapper').style.display = 'flex';
+                document.getElementById('welcome-msg').innerText = "Salut " + (user ? user.displayName : temp) + " !";
+                chargerMessages();
+                gererPresence();
+            }
+        });
+
+        // --- 2. GESTION DU COMPTEUR EN LIGNE ( VERT) ---
         async function gererPresence() {
-            const p = localStorage.getItem('tempUser');
+            const p = auth.currentUser ? auth.currentUser.displayName : localStorage.getItem('tempUser');
             const presenceRef = doc(db, "OnlineUsers", p);
             const heartbeat = () => setDoc(presenceRef, { lastSeen: serverTimestamp() });
             heartbeat();
             setInterval(heartbeat, 30000);
             onSnapshot(collection(db, "OnlineUsers"), (snap) => {
-                document.getElementById('userCount').innerText = snap.size + " en ligne";
+                document.getElementById('userCount').innerText = snap.size;
             });
             window.addEventListener('beforeunload', () => deleteDoc(presenceRef));
         }
 
+        // --- 3. GESTION DES PUBLICATIONS (AVEC VERIF BAN) ---
         document.getElementById('btnPublier').onclick = async () => {
-            const p = localStorage.getItem('tempUser');
-            const banSnap = await getDoc(doc(db, "BannedUsers", p));
-            if(banSnap.exists()) { alert("🚫 Tu es banni !"); return; }
+            const name = auth.currentUser ? auth.currentUser.displayName : localStorage.getItem('tempUser');
+            
+            // Vérification anti-ban
+            const banSnap = await getDoc(doc(db, "BannedUsers", name));
+            if(banSnap.exists()) { alert("🚫 Tu es banni de ce Cloud."); return; }
 
             const txt = document.getElementById('postText').value.trim();
             if(!txt) return;
 
-            await addDoc(collection(db, "messages"), { auteur: p, texte: txt, date: serverTimestamp() });
+            await addDoc(collection(db, "messages"), { auteur: name, texte: txt, date: serverTimestamp() });
             document.getElementById('postText').value = "";
         };
 
+        // --- 4. CHARGEMENT DU CHAT ---
         function chargerMessages() {
             onSnapshot(query(collection(db, "messages"), orderBy("date", "desc")), (snaps) => {
                 const f = document.getElementById('feed'); f.innerHTML = "";

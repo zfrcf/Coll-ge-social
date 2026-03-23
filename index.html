@@ -14,14 +14,12 @@
         #main-wrapper { display: none; flex-direction: column; align-items: center; padding: 15px; }
         .post { background: white; padding: 15px; border-radius: 12px; margin-bottom: 10px; width: 100%; max-width: 500px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
         .post b { color: var(--p); display: block; margin-bottom: 5px; }
-        .post img { max-width: 100%; border-radius: 8px; margin-top: 10px; display: block; }
         .input-area { width: 100%; max-width: 500px; background: white; padding: 15px; border-radius: 12px; box-sizing: border-box; margin-bottom: 20px; }
-        .action-btns { display: flex; gap: 10px; margin-top: 10px; }
+        .action-btns { display: flex; gap: 10px; margin-top: 10px; align-items: center; }
         button.publier { background: var(--p); color: white; border: none; padding: 12px; border-radius: 10px; flex: 1; font-weight: bold; cursor: pointer; }
-        .photo-btn { background: #eee; border: none; padding: 12px; border-radius: 10px; width: 50px; cursor: pointer; font-size: 1.2rem; }
-        .bottom-nav { position: fixed; bottom: 0; left: 0; width: 100%; height: 70px; background: white; border-top: 1px solid #ddd; display: flex; justify-content: space-around; align-items: center; }
-        .nav-item { width: 45px; height: 45px; border: 1px solid #eee; border-radius: 8px; overflow: hidden; }
-        .nav-item img { width: 100%; height: 100%; object-fit: contain; }
+        .online-counter { font-size: 12px; color: #28a745; font-weight: bold; display: flex; align-items: center; gap: 4px; }
+        .dot { width: 8px; height: 8px; background: #28a745; border-radius: 50%; display: inline-block; animation: blink 1.5s infinite; }
+        @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
     </style>
 </head>
 <body>
@@ -35,31 +33,24 @@
     </div>
 
     <div id="main-wrapper">
-        <nav><span>🎓 Collège Social</span><button onclick="location.reload()" style="background:none; border:1px solid white; color:white; border-radius:5px; cursor:pointer;">Déconnexion</button></nav>
+        <nav><span>🎓 Collège Social</span><button onclick="localStorage.clear(); location.reload();" style="background:none; border:1px solid white; color:white; border-radius:5px; cursor:pointer;">Quitter</button></nav>
         
         <div class="input-area">
             <p id="welcome-msg" style="font-weight:bold;"></p>
-            <textarea id="postText" placeholder="Quoi de neuf ?" style="width:100%; height:60px; border-radius:10px; border:1px solid #ddd; padding:10px; box-sizing:border-box;"></textarea>
+            <textarea id="postText" placeholder="Écris quelque chose..." style="width:100%; height:60px; border-radius:10px; border:1px solid #ddd; padding:10px; box-sizing:border-box; resize:none;"></textarea>
             <div class="action-btns">
-                <input type="file" id="fileInput" accept="image/*" style="display:none;">
-                <button class="photo-btn" onclick="document.getElementById('fileInput').click()">📷</button>
-                <button id="btnPublier" class="publier">Publier</button>
+                <button id="btnPublier" class="publier">Envoyer</button>
+                <div class="online-counter">
+                    <span class="dot"></span> <span id="userCount">...</span>
+                </div>
             </div>
-            <div id="file-status" style="font-size:11px; color:gray; margin-top:5px;"></div>
         </div>
         <div id="feed" style="width:100%; max-width:500px;"></div>
     </div>
 
-    <div class="bottom-nav">
-        <a href="#" class="nav-item"><img src="https://www.index-education.com/contenu/img/commun/logo-pronote-menu.png"></a>
-        <a href="#" class="nav-item"><img src="https://www.ecoledirecte.com/assets/images/logoEcoleDirecte.png"></a>
-        <a href="#" class="nav-item"><img src="https://is1-ssl.mzstatic.com/image/thumb/Purple126/v4/06/a5/34/06a534ba-feb2-c49e-b3a6-c93f97c7b8bb/prodAppIcon-1x_U007emarketing-0-7-0-85-220.png/1200x630wa.png"></a>
-    </div>
-
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getFirestore, collection, addDoc, query, orderBy, onSnapshot, serverTimestamp, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-        import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js";
+        import { getFirestore, collection, addDoc, query, orderBy, onSnapshot, serverTimestamp, doc, getDoc, setDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyAXIryKruq3g7JtdM8jgv8IDGjserqY3IY",
@@ -72,14 +63,15 @@
 
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
-        const storage = getStorage(app);
 
-        let user = localStorage.getItem('tempUser');
-        if(user) { 
+        let myName = localStorage.getItem('tempUser');
+
+        if(myName) { 
             document.getElementById('login-overlay').style.display = 'none';
             document.getElementById('main-wrapper').style.display = 'flex';
-            document.getElementById('welcome-msg').innerText = "Salut " + user + " !";
+            document.getElementById('welcome-msg').innerText = "Salut " + myName + " !";
             chargerMessages();
+            gererPresence();
         }
 
         document.getElementById('btnConnecter').onclick = () => {
@@ -87,32 +79,28 @@
             if(p) { localStorage.setItem('tempUser', p); location.reload(); }
         };
 
-        let selectedFile = null;
-        document.getElementById('fileInput').onchange = (e) => {
-            selectedFile = e.target.files[0];
-            document.getElementById('file-status').innerText = selectedFile ? "Photo prête !" : "";
-        };
+        async function gererPresence() {
+            const p = localStorage.getItem('tempUser');
+            const presenceRef = doc(db, "OnlineUsers", p);
+            const heartbeat = () => setDoc(presenceRef, { lastSeen: serverTimestamp() });
+            heartbeat();
+            setInterval(heartbeat, 30000);
+            onSnapshot(collection(db, "OnlineUsers"), (snap) => {
+                document.getElementById('userCount').innerText = snap.size + " en ligne";
+            });
+            window.addEventListener('beforeunload', () => deleteDoc(presenceRef));
+        }
 
         document.getElementById('btnPublier').onclick = async () => {
             const p = localStorage.getItem('tempUser');
-            // VERIFICATION DU BAN
             const banSnap = await getDoc(doc(db, "BannedUsers", p));
             if(banSnap.exists()) { alert("🚫 Tu es banni !"); return; }
 
-            const txt = document.getElementById('postText').value;
-            if(!txt && !selectedFile) return;
-            document.getElementById('btnPublier').innerText = "Envoi...";
+            const txt = document.getElementById('postText').value.trim();
+            if(!txt) return;
 
-            let url = null;
-            if(selectedFile) {
-                const sRef = ref(storage, 'photos/' + Date.now());
-                await uploadBytes(sRef, selectedFile);
-                url = await getDownloadURL(sRef);
-            }
-
-            await addDoc(collection(db, "messages"), { auteur: p, texte: txt, image: url, date: serverTimestamp() });
-            document.getElementById('postText').value = ""; selectedFile = null;
-            document.getElementById('btnPublier').innerText = "Publier";
+            await addDoc(collection(db, "messages"), { auteur: p, texte: txt, date: serverTimestamp() });
+            document.getElementById('postText').value = "";
         };
 
         function chargerMessages() {
@@ -120,8 +108,7 @@
                 const f = document.getElementById('feed'); f.innerHTML = "";
                 snaps.forEach(d => {
                     const data = d.data();
-                    let imgHtml = data.image ? `<img src="${data.image}">` : "";
-                    f.innerHTML += `<div class="post"><b>${data.auteur}</b><span>${data.texte}</span>${imgHtml}</div>`;
+                    f.innerHTML += `<div class="post"><b>${data.auteur}</b><span>${data.texte}</span></div>`;
                 });
             });
         }
